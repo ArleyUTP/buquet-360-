@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Bouquet Personalizado 360°</title>
+        <script
+            type="module"
+            src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+        ></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            :root {
+                --cream: #faf7f2;
+                --warm-white: #fff9f5;
+                --border: #e8e0d6;
+                --text-dark: #2a2018;
+                --text-mid: #7a6a58;
+                --text-light: #b0a090;
+                --accent: #c8a882;
+
+                --rosa-rojo: #c0233a;
+                --rosa-rosa: #e8708a;
+                --rosa-fucsia: #c2185b;
+                --rosa-naranja: #e86030;
+                --rosa-blanco: #f5ede8;
+
+                --filler-lavanda: #b8a9c9;
+                --filler-limon: #e8e1a8;
+                --filler-durazno: #f5c8a8;
+                --filler-blanco: #f0ece8;
+                --filler-azul: #a8c8e8;
+
+                --wrap-kraft: #d4b896;
+                --wrap-sage: #c8d8c0;
+                --wrap-lila: #d4c0d8;
+                --wrap-blanco: #f0f0f0;
+                --wrap-rosa: #f0c8d0;
+            }
+
+            html,
+            body {
+                height: 100%;
+                background: var(--cream);
+                font-family: "Jost", sans-serif;
+                color: var(--text-dark);
+            }
+
+            /* ── HEADER ── */
+            header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 1.1rem 2rem;
+                border-bottom: 0.5px solid var(--border);
+                background: var(--warm-white);
+            }
+            .brand {
+                font-family: "Cormorant Garamond", serif;
+                font-size: 1.4rem;
+                font-weight: 600;
+                letter-spacing: 0.04em;
+            }
+            .brand span {
+                color: var(--accent);
+            }
+            .header-tag {
+                font-size: 11px;
+                font-weight: 400;
+                color: var(--text-light);
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+            }
+
+            /* ── LAYOUT ── */
+            .app {
+                display: grid;
+                grid-template-columns: 1fr 320px;
+                height: calc(100vh - 58px);
+            }
+
+            /* ── VIEWER ── */
+            .viewer-wrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: var(--cream);
+                padding: 2rem;
+                position: relative;
+            }
+
+            model-viewer {
+                width: 100%;
+                max-width: 500px;
+                height: 460px;
+                border-radius: 20px;
+                background: transparent;
+                --poster-color: transparent;
+            }
+
+            .viewer-hint {
+                margin-top: 14px;
+                font-size: 12px;
+                color: var(--text-light);
+                letter-spacing: 0.06em;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .viewer-hint svg {
+                width: 14px;
+                height: 14px;
+                opacity: 0.5;
+            }
+
+            .color-name-badge {
+                position: absolute;
+                top: 2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--warm-white);
+                border: 0.5px solid var(--border);
+                border-radius: 999px;
+                padding: 4px 16px;
+                font-size: 12px;
+                font-weight: 500;
+                color: var(--text-mid);
+                letter-spacing: 0.08em;
+                transition: all 0.3s;
+                white-space: nowrap;
+            }
+
+            /* ── PANEL ── */
+            .panel {
+                background: var(--warm-white);
+                border-left: 0.5px solid var(--border);
+                padding: 2rem 1.5rem;
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+                overflow-y: auto;
+            }
+
+            .panel-title {
+                font-family: "Cormorant Garamond", serif;
+                font-size: 1.5rem;
+                font-weight: 600;
+                line-height: 1.2;
+            }
+            .panel-subtitle {
+                font-size: 12px;
+                color: var(--text-light);
+                margin-top: 4px;
+                letter-spacing: 0.06em;
+            }
+
+            /* ── SECTION ── */
+            .section {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .section-label {
+                font-size: 10px;
+                font-weight: 500;
+                color: var(--text-light);
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+            }
+
+            /* ── COLOR SWATCHES ── */
+            .swatch-grid {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .swatch {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2.5px solid transparent;
+                outline: 1.5px solid transparent;
+                outline-offset: 3px;
+                transition:
+                    transform 0.18s,
+                    outline-color 0.18s;
+                position: relative;
+            }
+            .swatch:hover {
+                transform: scale(1.1);
+            }
+            .swatch.active {
+                outline-color: var(--text-dark);
+            }
+            .swatch-rojo {
+                background: var(--rosa-rojo);
+            }
+            .swatch-rosa {
+                background: var(--rosa-rosa);
+            }
+            .swatch-fucsia {
+                background: var(--rosa-fucsia);
+            }
+            .swatch-naranja {
+                background: var(--rosa-naranja);
+            }
+            .swatch-blanco {
+                background: var(--rosa-blanco);
+                border-color: var(--border);
+            }
+
+            /* ── ENVOLTURA OPTS ── */
+            .option-list {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .opt-btn {
+                background: transparent;
+                border: 0.5px solid var(--border);
+                border-radius: 10px;
+                padding: 10px 14px;
+                font-family: "Jost", sans-serif;
+                font-size: 13px;
+                color: var(--text-dark);
+                cursor: pointer;
+                text-align: left;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition:
+                    background 0.15s,
+                    border-color 0.15s;
+            }
+            .opt-btn:hover {
+                background: var(--cream);
+            }
+            .opt-btn.active {
+                border-color: var(--text-dark);
+                border-width: 1.5px;
+                font-weight: 500;
+            }
+            .opt-dot {
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+
+            /* ── TALLA ── */
+            .size-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+            .size-btn {
+                background: transparent;
+                border: 0.5px solid var(--border);
+                border-radius: 10px;
+                padding: 10px 4px;
+                font-family: "Jost", sans-serif;
+                font-size: 12px;
+                color: var(--text-mid);
+                cursor: pointer;
+                text-align: center;
+                transition:
+                    background 0.15s,
+                    border-color 0.15s,
+                    color 0.15s;
+            }
+            .size-btn:hover {
+                background: var(--cream);
+            }
+            .size-btn.active {
+                border-color: var(--text-dark);
+                border-width: 1.5px;
+                color: var(--text-dark);
+                font-weight: 500;
+            }
+            .size-btn small {
+                display: block;
+                font-size: 10px;
+                color: var(--text-light);
+                margin-top: 2px;
+            }
+
+            /* ── PRECIO ── */
+            .price-block {
+                margin-top: auto;
+                padding-top: 1.5rem;
+                border-top: 0.5px solid var(--border);
+            }
+            .price-row {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                margin-bottom: 14px;
+            }
+            .price-label {
+                font-size: 12px;
+                color: var(--text-light);
+                letter-spacing: 0.06em;
+            }
+            .price-val {
+                font-family: "Cormorant Garamond", serif;
+                font-size: 2rem;
+                font-weight: 600;
+            }
+
+            .cta-btn {
+                width: 100%;
+                padding: 14px;
+                background: var(--text-dark);
+                color: var(--cream);
+                border: none;
+                border-radius: 12px;
+                font-family: "Jost", sans-serif;
+                font-size: 13px;
+                font-weight: 500;
+                letter-spacing: 0.08em;
+                cursor: pointer;
+                transition: opacity 0.15s;
+            }
+            .cta-btn:hover {
+                opacity: 0.85;
+            }
+
+            .note {
+                font-size: 11px;
+                color: var(--text-light);
+                text-align: center;
+                margin-top: 10px;
+                letter-spacing: 0.04em;
+            }
+
+            /* ── LOADING OVERLAY ── */
+            .loading-overlay {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                pointer-events: none;
+                opacity: 1;
+                transition: opacity 0.4s;
+            }
+            .loading-overlay.hidden {
+                opacity: 0;
+            }
+            .loader-ring {
+                width: 36px;
+                height: 36px;
+                border: 2px solid var(--border);
+                border-top-color: var(--accent);
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .loader-text {
+                font-size: 12px;
+                color: var(--text-light);
+                letter-spacing: 0.08em;
+            }
+
+            /* mobile */
+            @media (max-width: 700px) {
+                .app {
+                    grid-template-columns: 1fr;
+                    grid-template-rows: auto 1fr;
+                    height: auto;
+                }
+                .viewer-wrap {
+                    height: 380px;
+                }
+                .panel {
+                    border-left: none;
+                    border-top: 0.5px solid var(--border);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="brand">Flora<span>&</span>Co</div>
+            <div class="header-tag">Personalizador 360°</div>
+        </header>
+
+        <div class="app">
+            <!-- VIEWER -->
+            <div class="viewer-wrap">
+                <div class="loading-overlay" id="loader">
+                    <div class="loader-ring"></div>
+                    <span class="loader-text">Cargando bouquet...</span>
+                </div>
+
+                <div class="color-name-badge" id="colorBadge">Rosa Clásica</div>
+
+                <model-viewer
+                    id="mv"
+                    src="https://raw.githubusercontent.com/ArleyUTP/buquet-360-/main/buquet_rosas.glb"
+                    camera-controls
+                    auto-rotate
+                    auto-rotate-delay="1000"
+                    rotation-per-second="20deg"
+                    shadow-intensity="1"
+                    shadow-softness="0.8"
+                    exposure="1.1"
+                    environment-image="legacy"
+                    alt="Bouquet de rosas personalizable 360 grados"
+                >
+                </model-viewer>
+
+                <p class="viewer-hint">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                    >
+                        <path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4" />
+                    </svg>
+                    Arrastra para rotar · Pellizca para hacer zoom
+                </p>
+            </div>
+
+            <!-- PANEL -->
+            <div class="panel" id="panel">
+                <div>
+                    <h1 class="panel-title">Bouquet<br />de Rosas</h1>
+                    <p class="panel-subtitle">Personaliza cada detalle</p>
+                </div>
+
+                <!-- COLOR DE ROSAS -->
+                <div class="section">
+                    <span class="section-label">Color de rosas</span>
+                    <div class="swatch-grid">
+                        <div
+                            class="swatch swatch-rojo active"
+                            onclick="setRoseColor(this, 'rojo', 'Rosa Roja', '#c0233a', [0.75, 0.14, 0.23, 1])"
+                            title="Roja"
+                        ></div>
+                        <div
+                            class="swatch swatch-rosa"
+                            onclick="setRoseColor(this, 'rosa', 'Rosa Clásica', '#e8708a', [0.91, 0.44, 0.54, 1])"
+                            title="Rosa"
+                        ></div>
+                        <div
+                            class="swatch swatch-fucsia"
+                            onclick="setRoseColor(this, 'fucsia', 'Rosa Fucsia', '#c2185b', [0.76, 0.09, 0.36, 1])"
+                            title="Fucsia"
+                        ></div>
+                        <div
+                            class="swatch swatch-naranja"
+                            onclick="setRoseColor(this, 'naranja', 'Rosa Naranja', '#e86030', [0.91, 0.38, 0.19, 1])"
+                            title="Naranja"
+                        ></div>
+                        <div
+                            class="swatch swatch-blanco"
+                            onclick="setRoseColor(this, 'blanco', 'Rosa Blanca', '#f5ede8', [0.96, 0.93, 0.91, 1])"
+                            title="Blanca"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- FLORES ACOMPAÑANTES -->
+                <div class="section">
+                    <span class="section-label">Flores acompañantes</span>
+                    <div class="swatch-grid">
+                        <div
+                            class="swatch active"
+                            style="background: var(--filler-lavanda); border-color: var(--border);"
+                            onclick="setFillerColor(this, 'lavanda', 'Lavanda', '#b8a9c9', [0.72, 0.66, 0.79, 1])"
+                            title="Lavanda"
+                        ></div>
+                        <div
+                            class="swatch"
+                            style="background: var(--filler-limon); border-color: var(--border);"
+                            onclick="setFillerColor(this, 'limon', 'Limón', '#e8e1a8', [0.91, 0.88, 0.66, 1])"
+                            title="Limón"
+                        ></div>
+                        <div
+                            class="swatch"
+                            style="background: var(--filler-durazno); border-color: var(--border);"
+                            onclick="setFillerColor(this, 'durazno', 'Durazno', '#f5c8a8', [0.96, 0.78, 0.66, 1])"
+                            title="Durazno"
+                        ></div>
+                        <div
+                            class="swatch"
+                            style="background: var(--filler-blanco); border-color: var(--border);"
+                            onclick="setFillerColor(this, 'blanco', 'Blanco', '#f0ece8', [0.94, 0.93, 0.91, 1])"
+                            title="Blanco"
+                        ></div>
+                        <div
+                            class="swatch"
+                            style="background: var(--filler-azul); border-color: var(--border);"
+                            onclick="setFillerColor(this, 'azul', 'Azul cielo', '#a8c8e8', [0.66, 0.78, 0.91, 1])"
+                            title="Azul cielo"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- ENVOLTURA -->
+                <div class="section">
+                    <span class="section-label">Envoltura</span>
+                    <div class="option-list">
+                        <button
+                            class="opt-btn active"
+                            onclick="setWrapColor(this, 'Kraft natural', '#d4b896', [0.83, 0.72, 0.59, 1])"
+                        >
+                            <span
+                                class="opt-dot"
+                                style="background: #d4b896"
+                            ></span>
+                            Kraft natural
+                        </button>
+                        <button
+                            class="opt-btn"
+                            onclick="setWrapColor(this, 'Verde sage', '#c8d8c0', [0.78, 0.85, 0.75, 1])"
+                        >
+                            <span
+                                class="opt-dot"
+                                style="background: #c8d8c0"
+                            ></span>
+                            Verde sage
+                        </button>
+                        <button
+                            class="opt-btn"
+                            onclick="setWrapColor(this, 'Lila suave', '#d4c0d8', [0.83, 0.75, 0.85, 1])"
+                        >
+                            <span
+                                class="opt-dot"
+                                style="background: #d4c0d8"
+                            ></span>
+                            Lila suave
+                        </button>
+                        <button
+                            class="opt-btn"
+                            onclick="setWrapColor(this, 'Blanco elegante', '#f0f0f0', [0.94, 0.94, 0.94, 1])"
+                        >
+                            <span
+                                class="opt-dot"
+                                style="background: #f0f0f0"
+                            ></span>
+                            Blanco elegante
+                        </button>
+                        <button
+                            class="opt-btn"
+                            onclick="setWrapColor(this, 'Rosa pastel', '#f0c8d0', [0.94, 0.78, 0.82, 1])"
+                        >
+                            <span
+                                class="opt-dot"
+                                style="background: #f0c8d0"
+                            ></span>
+                            Rosa pastel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAMAÑO -->
+                <div class="section">
+                    <span class="section-label">Tamaño</span>
+                    <div class="size-grid">
+                        <button
+                            class="size-btn"
+                            onclick="setSize(this, 55, 'S')"
+                        >
+                            S <small>12 rosas</small>
+                        </button>
+                        <button
+                            class="size-btn active"
+                            onclick="setSize(this, 85, 'M')"
+                        >
+                            M <small>24 rosas</small>
+                        </button>
+                        <button
+                            class="size-btn"
+                            onclick="setSize(this, 130, 'L')"
+                        >
+                            L <small>36 rosas</small>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PRECIO + CTA -->
+                <div class="price-block">
+                    <div class="price-row">
+                        <span class="price-label">Total estimado</span>
+                        <span class="price-val" id="priceVal">S/ 85</span>
+                    </div>
+                    <button class="cta-btn" onclick="addToCart()">
+                        Agregar al pedido
+                    </button>
+                    <p class="note" id="configNote">
+                        Rosas rojas · Flores lavanda · Kraft natural · Talla M
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const mv = document.getElementById("mv");
+            const loader = document.getElementById("loader");
+            const colorBadge = document.getElementById("colorBadge");
+            const priceVal = document.getElementById("priceVal");
+            const configNote = document.getElementById("configNote");
+
+            // Material indices in the GLB: 0=Roses, 1=Filler, 2=Wrap
+            const ROSE_MAT = 0;
+            const FILLER_MAT = 1;
+            const WRAP_MAT = 2;
+
+            let state = {
+                roseName: "Rosa Roja",
+                roseRGBA: [0.75, 0.14, 0.23, 1],
+                fillerName: "Lavanda",
+                fillerRGBA: [0.72, 0.66, 0.79, 1],
+                wrapName: "Kraft natural",
+                wrapRGBA: [0.83, 0.72, 0.59, 1],
+                size: "M",
+                price: 85,
+            };
+
+            function getMat(idx) {
+                try { return mv.model?.materials?.[idx] || null; } catch (e) { return null; }
+            }
+
+            function setMatColor(idx, rgba) {
+                const mat = getMat(idx);
+                if (mat) {
+                    try { mat.pbrMetallicRoughness.setBaseColorFactor(rgba); } catch (e) {}
+                }
+            }
+
+            mv.addEventListener("load", () => {
+                loader.classList.add("hidden");
+                setMatColor(ROSE_MAT, state.roseRGBA);
+                setMatColor(FILLER_MAT, state.fillerRGBA);
+                setMatColor(WRAP_MAT, state.wrapRGBA);
+                updateBadge();
+            });
+
+            mv.addEventListener("error", () => {
+                loader.querySelector(".loader-text").textContent =
+                    "Cargando modelo...";
+            });
+
+            /* ── ROSAS ── */
+            function setRoseColor(el, key, name, hex, rgba) {
+                const parent = el.closest(".section");
+                parent.querySelectorAll(".swatch").forEach((s) => s.classList.remove("active"));
+                el.classList.add("active");
+                state.roseName = name;
+                state.roseRGBA = rgba;
+                setMatColor(ROSE_MAT, rgba);
+                updateBadge();
+            }
+
+            /* ── FLORES ACOMPAÑANTES ── */
+            function setFillerColor(el, key, name, hex, rgba) {
+                const parent = el.closest(".section");
+                parent.querySelectorAll(".swatch").forEach((s) => s.classList.remove("active"));
+                el.classList.add("active");
+                state.fillerName = name;
+                state.fillerRGBA = rgba;
+                setMatColor(FILLER_MAT, rgba);
+                updateBadge();
+            }
+
+            /* ── ENVOLTURA ── */
+            function setWrapColor(btn, name, hex, rgba) {
+                const list = btn.closest(".option-list");
+                list.querySelectorAll(".opt-btn").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                state.wrapName = name;
+                state.wrapRGBA = rgba;
+                setMatColor(WRAP_MAT, rgba);
+                updateBadge();
+            }
+
+            /* ── TALLA ── */
+            function setSize(btn, price, size) {
+                document
+                    .querySelectorAll(".size-btn")
+                    .forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                state.price = price;
+                state.size = size;
+                priceVal.textContent = "S/ " + price;
+                updateBadge();
+            }
+
+            function updateBadge() {
+                const hex = rgbaToHex(state.roseRGBA);
+                colorBadge.textContent = state.roseName;
+                colorBadge.style.borderColor = hex;
+                configNote.textContent =
+                    `Rosas ${state.roseName.toLowerCase()} · Flores ${state.fillerName.toLowerCase()} · ${state.wrapName} · Talla ${state.size}`;
+            }
+
+            function rgbaToHex(rgba) {
+                const r = Math.round(rgba[0] * 255).toString(16).padStart(2, "0");
+                const g = Math.round(rgba[1] * 255).toString(16).padStart(2, "0");
+                const b = Math.round(rgba[2] * 255).toString(16).padStart(2, "0");
+                return "#" + r + g + b;
+            }
+
+            function addToCart() {
+                const msg =
+                    `¡Quiero ordenar este bouquet!\n` +
+                    `• Rosas: ${state.roseName}\n` +
+                    `• Flores acompañantes: ${state.fillerName}\n` +
+                    `• Envoltura: ${state.wrapName}\n` +
+                    `• Talla: ${state.size} \n` +
+                    `• Precio: S/ ${state.price}`;
+                alert("Pedido registrado:\n\n" + msg);
+            }
+        </script>
+    </body>
+</html>
