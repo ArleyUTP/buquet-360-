@@ -4,3 +4,4 @@
 
 # ATL / Gentle AI tooling
 .atl/
+*.glb.bak
