@@ -651,13 +651,20 @@
                     uTintStrength: { value: 0 },
                 };
                 tintUniforms[index] = uniforms;
+                material.userData.tintUniforms = uniforms;
 
                 material.onBeforeCompile = (shader) => {
-                    // Add uniforms
+                    // Link JS uniforms
                     shader.uniforms.uTintColor = uniforms.uTintColor;
                     shader.uniforms.uTintStrength = uniforms.uTintStrength;
 
-                    // Inject the tint logic after diffuseColor is declared
+                    // Declare uniforms in GLSL (after an early include)
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        '#include <common>',
+                        '#include <common>\nuniform vec3 uTintColor;\nuniform float uTintStrength;'
+                    );
+
+                    // Inject tint logic after diffuseColor declaration
                     shader.fragmentShader = shader.fragmentShader.replace(
                         'vec4 diffuseColor = vec4( diffuse, opacity );',
                         `
