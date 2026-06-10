@@ -150,6 +150,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
+
 // ── DOM refs ─────────────────────────────────────────────────────────────────
 const canvas     = document.getElementById('three-canvas');
 const loaderEl   = document.getElementById('loader');
@@ -180,8 +181,24 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xfaf7f2);
 
+// ── Environment & lights ─────────────────────────────────────────────────────
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment()).texture;
+
+// Key light — frontal-left, warmer
+const keyLight = new THREE.DirectionalLight(0xffeedd, 1.8);
+keyLight.position.set(2, 3, 4);
+scene.add(keyLight);
+
+// Fill light — right side, cooler, softer
+const fillLight = new THREE.DirectionalLight(0xddddff, 0.8);
+fillLight.position.set(-3, 1, 2);
+scene.add(fillLight);
+
+// Rim light — back-top, gives edge definition
+const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
+rimLight.position.set(0, 3, -4);
+scene.add(rimLight);
 
 const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
 camera.position.set(0, 1.2, 5);
