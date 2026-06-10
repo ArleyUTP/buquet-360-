@@ -612,28 +612,14 @@
                 price: 85,
             };
 
-            // Emissive tint intensity (0-1). Higher = more color overlay
-            const TINT_STRENGTH = 0.45;
-
             function getMat(idx) {
                 try { return mv.model?.materials?.[idx] || null; } catch (e) { return null; }
             }
 
-            function setMatTint(idx, rgb) {
+            function setMatColor(idx, rgba) {
                 const mat = getMat(idx);
-                if (!mat) return;
-                try {
-                    // Show texture at full
-                    mat.pbrMetallicRoughness.setBaseColorFactor([1, 1, 1, 1]);
-                    // Add tint via emissive (additive blend preserves texture detail)
-                    // Scale down so it's a subtle overlay, not overwhelming
-                    const intensity = TINT_STRENGTH;
-                    mat.emissiveFactor = [rgb[0] * intensity, rgb[1] * intensity, rgb[2] * intensity];
-                } catch (e) {
-                    // Fallback: use baseColorFactor (multiplicative, less vivid)
-                    try {
-                        mat.pbrMetallicRoughness.setBaseColorFactor(rgb);
-                    } catch (e2) {}
+                if (mat) {
+                    try { mat.pbrMetallicRoughness.setBaseColorFactor(rgba); } catch (e) {}
                 }
             }
 
@@ -648,10 +634,9 @@
                 console.log("Materials loaded:", names.join(", "));
 
                 // Apply tints (texture shows at full + emissive overlay)
-                setMatTint(ROSE_MAT, state.roseRGBA);
-                setMatTint(RIBBON_MAT, state.ribbonRGBA);
-                setMatTint(WRAP_MAT, state.wrapRGBA);
-                // Tallos stays natural (no tint)
+                setMatColor(ROSE_MAT, state.roseRGBA);
+                setMatColor(RIBBON_MAT, state.ribbonRGBA);
+                setMatColor(WRAP_MAT, state.wrapRGBA);
                 updateBadge();
             });
 
@@ -667,7 +652,7 @@
                 el.classList.add("active");
                 state.roseName = name;
                 state.roseRGBA = rgba;
-                setMatTint(ROSE_MAT, rgba);
+                setMatColor(ROSE_MAT, rgba);
                 updateBadge();
             }
 
@@ -678,7 +663,7 @@
                 el.classList.add("active");
                 state.ribbonName = name;
                 state.ribbonRGBA = rgba;
-                setMatTint(RIBBON_MAT, rgba);
+                setMatColor(RIBBON_MAT, rgba);
                 updateBadge();
             }
 
@@ -689,7 +674,7 @@
                 btn.classList.add("active");
                 state.wrapName = name;
                 state.wrapRGBA = rgba;
-                setMatTint(WRAP_MAT, rgba);
+                setMatColor(WRAP_MAT, rgba);
                 updateBadge();
             }
 
