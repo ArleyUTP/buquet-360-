@@ -36,11 +36,11 @@
                 --rosa-naranja: #e86030;
                 --rosa-blanco: #f5ede8;
 
-                --filler-lavanda: #b8a9c9;
-                --filler-limon: #e8e1a8;
-                --filler-durazno: #f5c8a8;
-                --filler-blanco: #f0ece8;
-                --filler-azul: #a8c8e8;
+                --liston-blanco: #f5ede8;
+                --liston-champagne: #f5e6c8;
+                --liston-rojo: #c0233a;
+                --liston-arena: #d4b896;
+                --liston-borgona: #7a2e3a;
 
                 --wrap-kraft: #d4b896;
                 --wrap-sage: #c8d8c0;
@@ -57,7 +57,6 @@
                 color: var(--text-dark);
             }
 
-            /* ── HEADER ── */
             header {
                 display: flex;
                 align-items: center;
@@ -83,14 +82,12 @@
                 text-transform: uppercase;
             }
 
-            /* ── LAYOUT ── */
             .app {
                 display: grid;
                 grid-template-columns: 1fr 320px;
                 height: calc(100vh - 58px);
             }
 
-            /* ── VIEWER ── */
             .viewer-wrap {
                 display: flex;
                 flex-direction: column;
@@ -142,7 +139,6 @@
                 white-space: nowrap;
             }
 
-            /* ── PANEL ── */
             .panel {
                 background: var(--warm-white);
                 border-left: 0.5px solid var(--border);
@@ -166,7 +162,6 @@
                 letter-spacing: 0.06em;
             }
 
-            /* ── SECTION ── */
             .section {
                 display: flex;
                 flex-direction: column;
@@ -180,7 +175,6 @@
                 text-transform: uppercase;
             }
 
-            /* ── COLOR SWATCHES ── */
             .swatch-grid {
                 display: flex;
                 gap: 10px;
@@ -222,7 +216,6 @@
                 border-color: var(--border);
             }
 
-            /* ── ENVOLTURA OPTS ── */
             .option-list {
                 display: flex;
                 flex-direction: column;
@@ -260,7 +253,6 @@
                 flex-shrink: 0;
             }
 
-            /* ── TALLA ── */
             .size-grid {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
@@ -297,7 +289,6 @@
                 margin-top: 2px;
             }
 
-            /* ── PRECIO ── */
             .price-block {
                 margin-top: auto;
                 padding-top: 1.5rem;
@@ -346,7 +337,6 @@
                 letter-spacing: 0.04em;
             }
 
-            /* ── LOADING OVERLAY ── */
             .loading-overlay {
                 position: absolute;
                 inset: 0;
@@ -381,7 +371,13 @@
                 letter-spacing: 0.08em;
             }
 
-            /* mobile */
+            .fixed-note {
+                font-size: 11px;
+                color: var(--text-light);
+                font-style: italic;
+                padding: 6px 0;
+            }
+
             @media (max-width: 700px) {
                 .app {
                     grid-template-columns: 1fr;
@@ -416,7 +412,7 @@
 
                 <model-viewer
                     id="mv"
-                    src="https://raw.githubusercontent.com/ArleyUTP/buquet-360-/main/buquet_rosas.glb"
+                    src="https://raw.githubusercontent.com/ArleyUTP/buquet-360-/main/rose_bouquet_3d.glb"
                     camera-controls
                     auto-rotate
                     auto-rotate-delay="1000"
@@ -481,95 +477,80 @@
                     </div>
                 </div>
 
-                <!-- FLORES ACOMPAÑANTES -->
+                <!-- COLOR DE LISTÓN -->
                 <div class="section">
-                    <span class="section-label">Flores acompañantes</span>
+                    <span class="section-label">Color de listón</span>
                     <div class="swatch-grid">
                         <div
                             class="swatch active"
-                            style="background: var(--filler-lavanda); border-color: var(--border);"
-                            onclick="setFillerColor(this, 'lavanda', 'Lavanda', '#b8a9c9', [0.72, 0.66, 0.79, 1])"
-                            title="Lavanda"
-                        ></div>
-                        <div
-                            class="swatch"
-                            style="background: var(--filler-limon); border-color: var(--border);"
-                            onclick="setFillerColor(this, 'limon', 'Limón', '#e8e1a8', [0.91, 0.88, 0.66, 1])"
-                            title="Limón"
-                        ></div>
-                        <div
-                            class="swatch"
-                            style="background: var(--filler-durazno); border-color: var(--border);"
-                            onclick="setFillerColor(this, 'durazno', 'Durazno', '#f5c8a8', [0.96, 0.78, 0.66, 1])"
-                            title="Durazno"
-                        ></div>
-                        <div
-                            class="swatch"
-                            style="background: var(--filler-blanco); border-color: var(--border);"
-                            onclick="setFillerColor(this, 'blanco', 'Blanco', '#f0ece8', [0.94, 0.93, 0.91, 1])"
+                            style="background: var(--liston-blanco); border-color: var(--border);"
+                            onclick="setRibbonColor(this, 'blanco', 'Blanco', '#f5ede8', [0.96, 0.93, 0.91, 1])"
                             title="Blanco"
                         ></div>
                         <div
                             class="swatch"
-                            style="background: var(--filler-azul); border-color: var(--border);"
-                            onclick="setFillerColor(this, 'azul', 'Azul cielo', '#a8c8e8', [0.66, 0.78, 0.91, 1])"
-                            title="Azul cielo"
+                            style="background: var(--liston-champagne); border-color: var(--border);"
+                            onclick="setRibbonColor(this, 'champagne', 'Champagne', '#f5e6c8', [0.96, 0.90, 0.78, 1])"
+                            title="Champagne"
+                        ></div>
+                        <div
+                            class="swatch"
+                            style="background: var(--liston-rojo);"
+                            onclick="setRibbonColor(this, 'rojo', 'Rojo', '#c0233a', [0.75, 0.14, 0.23, 1])"
+                            title="Rojo"
+                        ></div>
+                        <div
+                            class="swatch"
+                            style="background: var(--liston-arena);"
+                            onclick="setRibbonColor(this, 'arena', 'Arena', '#d4b896', [0.83, 0.72, 0.59, 1])"
+                            title="Arena"
+                        ></div>
+                        <div
+                            class="swatch"
+                            style="background: var(--liston-borgona);"
+                            onclick="setRibbonColor(this, 'borgona', 'Borgoña', '#7a2e3a', [0.48, 0.18, 0.23, 1])"
+                            title="Borgoña"
                         ></div>
                     </div>
                 </div>
 
                 <!-- ENVOLTURA -->
                 <div class="section">
-                    <span class="section-label">Envoltura</span>
+                    <span class="section-label">Papel de envoltura</span>
                     <div class="option-list">
                         <button
                             class="opt-btn active"
                             onclick="setWrapColor(this, 'Kraft natural', '#d4b896', [0.83, 0.72, 0.59, 1])"
                         >
-                            <span
-                                class="opt-dot"
-                                style="background: #d4b896"
-                            ></span>
+                            <span class="opt-dot" style="background: #d4b896"></span>
                             Kraft natural
                         </button>
                         <button
                             class="opt-btn"
                             onclick="setWrapColor(this, 'Verde sage', '#c8d8c0', [0.78, 0.85, 0.75, 1])"
                         >
-                            <span
-                                class="opt-dot"
-                                style="background: #c8d8c0"
-                            ></span>
+                            <span class="opt-dot" style="background: #c8d8c0"></span>
                             Verde sage
                         </button>
                         <button
                             class="opt-btn"
                             onclick="setWrapColor(this, 'Lila suave', '#d4c0d8', [0.83, 0.75, 0.85, 1])"
                         >
-                            <span
-                                class="opt-dot"
-                                style="background: #d4c0d8"
-                            ></span>
+                            <span class="opt-dot" style="background: #d4c0d8"></span>
                             Lila suave
                         </button>
                         <button
                             class="opt-btn"
                             onclick="setWrapColor(this, 'Blanco elegante', '#f0f0f0', [0.94, 0.94, 0.94, 1])"
                         >
-                            <span
-                                class="opt-dot"
-                                style="background: #f0f0f0"
-                            ></span>
+                            <span class="opt-dot" style="background: #f0f0f0"></span>
                             Blanco elegante
                         </button>
                         <button
                             class="opt-btn"
                             onclick="setWrapColor(this, 'Rosa pastel', '#f0c8d0', [0.94, 0.78, 0.82, 1])"
                         >
-                            <span
-                                class="opt-dot"
-                                style="background: #f0c8d0"
-                            ></span>
+                            <span class="opt-dot" style="background: #f0c8d0"></span>
                             Rosa pastel
                         </button>
                     </div>
@@ -579,22 +560,13 @@
                 <div class="section">
                     <span class="section-label">Tamaño</span>
                     <div class="size-grid">
-                        <button
-                            class="size-btn"
-                            onclick="setSize(this, 55, 'S')"
-                        >
+                        <button class="size-btn" onclick="setSize(this, 55, 'S')">
                             S <small>12 rosas</small>
                         </button>
-                        <button
-                            class="size-btn active"
-                            onclick="setSize(this, 85, 'M')"
-                        >
+                        <button class="size-btn active" onclick="setSize(this, 85, 'M')">
                             M <small>24 rosas</small>
                         </button>
-                        <button
-                            class="size-btn"
-                            onclick="setSize(this, 130, 'L')"
-                        >
+                        <button class="size-btn" onclick="setSize(this, 130, 'L')">
                             L <small>36 rosas</small>
                         </button>
                     </div>
@@ -610,7 +582,7 @@
                         Agregar al pedido
                     </button>
                     <p class="note" id="configNote">
-                        Rosas rojas · Flores lavanda · Kraft natural · Talla M
+                        Rosas rojas · Listón blanco · Kraft natural · Talla M
                     </p>
                 </div>
             </div>
@@ -623,16 +595,17 @@
             const priceVal = document.getElementById("priceVal");
             const configNote = document.getElementById("configNote");
 
-            // Material indices in the GLB: 0=Roses, 1=Filler, 2=Wrap
+            // Material indices in the GLB: 0=rosas, 1=listón, 2=papel_envoltura, 3=tallos_hojas
             const ROSE_MAT = 0;
-            const FILLER_MAT = 1;
+            const RIBBON_MAT = 1;
             const WRAP_MAT = 2;
+            const STEMS_MAT = 3;
 
             let state = {
                 roseName: "Rosa Roja",
                 roseRGBA: [0.75, 0.14, 0.23, 1],
-                fillerName: "Lavanda",
-                fillerRGBA: [0.72, 0.66, 0.79, 1],
+                ribbonName: "Blanco",
+                ribbonRGBA: [0.96, 0.93, 0.91, 1],
                 wrapName: "Kraft natural",
                 wrapRGBA: [0.83, 0.72, 0.59, 1],
                 size: "M",
@@ -653,14 +626,15 @@
             mv.addEventListener("load", () => {
                 loader.classList.add("hidden");
                 setMatColor(ROSE_MAT, state.roseRGBA);
-                setMatColor(FILLER_MAT, state.fillerRGBA);
+                setMatColor(RIBBON_MAT, state.ribbonRGBA);
                 setMatColor(WRAP_MAT, state.wrapRGBA);
+                // tallos_hojas stays at default (no tint)
                 updateBadge();
             });
 
             mv.addEventListener("error", () => {
                 loader.querySelector(".loader-text").textContent =
-                    "Cargando modelo...";
+                    "Error al cargar el modelo";
             });
 
             /* ── ROSAS ── */
@@ -674,14 +648,14 @@
                 updateBadge();
             }
 
-            /* ── FLORES ACOMPAÑANTES ── */
-            function setFillerColor(el, key, name, hex, rgba) {
+            /* ── LISTÓN ── */
+            function setRibbonColor(el, key, name, hex, rgba) {
                 const parent = el.closest(".section");
                 parent.querySelectorAll(".swatch").forEach((s) => s.classList.remove("active"));
                 el.classList.add("active");
-                state.fillerName = name;
-                state.fillerRGBA = rgba;
-                setMatColor(FILLER_MAT, rgba);
+                state.ribbonName = name;
+                state.ribbonRGBA = rgba;
+                setMatColor(RIBBON_MAT, rgba);
                 updateBadge();
             }
 
@@ -713,7 +687,7 @@
                 colorBadge.textContent = state.roseName;
                 colorBadge.style.borderColor = hex;
                 configNote.textContent =
-                    `Rosas ${state.roseName.toLowerCase()} · Flores ${state.fillerName.toLowerCase()} · ${state.wrapName} · Talla ${state.size}`;
+                    `Rosas ${state.roseName.toLowerCase()} · Listón ${state.ribbonName.toLowerCase()} · ${state.wrapName} · Talla ${state.size}`;
             }
 
             function rgbaToHex(rgba) {
@@ -727,7 +701,7 @@
                 const msg =
                     `¡Quiero ordenar este bouquet!\n` +
                     `• Rosas: ${state.roseName}\n` +
-                    `• Flores acompañantes: ${state.fillerName}\n` +
+                    `• Listón: ${state.ribbonName}\n` +
                     `• Envoltura: ${state.wrapName}\n` +
                     `• Talla: ${state.size} \n` +
                     `• Precio: S/ ${state.price}`;
