@@ -1,7 +1,0 @@
-# Blender auto-backup
-*.blend1
-*.blend2
-
-# ATL / Gentle AI tooling
-.atl/
-*.glb.bak
