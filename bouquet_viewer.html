@@ -267,6 +267,20 @@ new GLTFLoader().load(
     const found = Object.keys(matMap);
     debugEl.textContent = `Materiales: ${found.length ? found.join(', ') : 'NINGUNO — revisar MAT_NAMES vs GLB'}`;
 
+    // Remove baseColorTexture from colorizable materials (GLB has baked texture)
+    // so material.color controls the full hue without multiplication.
+    const colorizable = ['rosas', 'liston', 'papel'];
+    for (const slot of colorizable) {
+      const mats = matMap[slot];
+      if (!mats) continue;
+      for (const m of mats) {
+        if (m.map) {
+          m.map = null;
+          m.needsUpdate = true;
+        }
+      }
+    }
+
     // Apply default colors (using material.color for solid-color materials)
     setMatColor('rosas',  '#c0233a');
     setMatColor('liston', '#f5ede8');
