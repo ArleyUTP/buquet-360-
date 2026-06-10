@@ -4,10 +4,6 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Bouquet Personalizado 360°</title>
-        <script
-            type="module"
-            src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
-        ></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap"
             rel="stylesheet"
@@ -98,13 +94,13 @@
                 position: relative;
             }
 
-            model-viewer {
+            #three-canvas {
                 width: 100%;
                 max-width: 500px;
                 height: 460px;
                 border-radius: 20px;
-                background: transparent;
-                --poster-color: transparent;
+                display: block;
+                touch-action: none;
             }
 
             .viewer-hint {
@@ -137,6 +133,8 @@
                 letter-spacing: 0.08em;
                 transition: all 0.3s;
                 white-space: nowrap;
+                pointer-events: none;
+                z-index: 2;
             }
 
             .panel {
@@ -348,6 +346,7 @@
                 pointer-events: none;
                 opacity: 1;
                 transition: opacity 0.4s;
+                z-index: 3;
             }
             .loading-overlay.hidden {
                 opacity: 0;
@@ -371,13 +370,6 @@
                 letter-spacing: 0.08em;
             }
 
-            .fixed-note {
-                font-size: 11px;
-                color: var(--text-light);
-                font-style: italic;
-                padding: 6px 0;
-            }
-
             @media (max-width: 700px) {
                 .app {
                     grid-template-columns: 1fr;
@@ -385,6 +377,9 @@
                     height: auto;
                 }
                 .viewer-wrap {
+                    height: 380px;
+                }
+                #three-canvas {
                     height: 380px;
                 }
                 .panel {
@@ -410,20 +405,7 @@
 
                 <div class="color-name-badge" id="colorBadge">Rosa Clásica</div>
 
-                <model-viewer
-                    id="mv"
-                    src="https://raw.githubusercontent.com/ArleyUTP/buquet-360-/main/rose_bouquet_3d.glb"
-                    camera-controls
-                    auto-rotate
-                    auto-rotate-delay="1000"
-                    rotation-per-second="20deg"
-                    shadow-intensity="1"
-                    shadow-softness="0.8"
-                    exposure="1.1"
-                    environment-image="legacy"
-                    alt="Bouquet de rosas personalizable 360 grados"
-                >
-                </model-viewer>
+                <canvas id="three-canvas"></canvas>
 
                 <p class="viewer-hint">
                     <svg
@@ -588,133 +570,271 @@
             </div>
         </div>
 
-        <script>
-            const mv = document.getElementById("mv");
-            const loader = document.getElementById("loader");
-            const colorBadge = document.getElementById("colorBadge");
-            const priceVal = document.getElementById("priceVal");
-            const configNote = document.getElementById("configNote");
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+                }
+            }
+        </script>
 
-            // Material indices in the GLB: 0=liston_mat, 1=papel_envoltura_mat, 2=rosas_mat, 3=tallos_hojas_mat
-            const ROSE_MAT = 2;
-            const RIBBON_MAT = 0;
-            const WRAP_MAT = 1;
-            const STEMS_MAT = 3;
+        <script type="module">
+            import * as THREE from 'three';
+            import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+            import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+            import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-            let state = {
-                roseName: "Rosa Roja",
-                roseRGBA: [0.75, 0.14, 0.23, 1],
-                ribbonName: "Blanco",
-                ribbonRGBA: [0.96, 0.93, 0.91, 1],
-                wrapName: "Kraft natural",
-                wrapRGBA: [0.83, 0.72, 0.59, 1],
-                size: "M",
+            // --- DOM refs ---
+            const canvas = document.getElementById('three-canvas');
+            const loader = document.getElementById('loader');
+            const colorBadge = document.getElementById('colorBadge');
+            const priceVal = document.getElementById('priceVal');
+            const configNote = document.getElementById('configNote');
+
+            // --- Material indices in GLB ---
+            const MAT = {
+                RIBBON: 0,
+                WRAP: 1,
+                ROSES: 2,
+                STEMS: 3,
+            };
+
+            // --- Scene setup ---
+            const renderer = new THREE.WebGLRenderer({
+                canvas,
+                antialias: true,
+                alpha: true,
+            });
+            renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xfaf7f2);
+
+            // Environment
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            const envTexture = pmremGenerator.fromScene(new RoomEnvironment()).texture;
+            scene.environment = envTexture;
+
+            // Camera
+            const camera = new THREE.PerspectiveCamera(
+                30,
+                canvas.clientWidth / canvas.clientHeight,
+                0.1,
+                100
+            );
+            camera.position.set(0, 1.2, 5);
+
+            // Controls
+            const controls = new OrbitControls(camera, canvas);
+            controls.target.set(0, 0.8, 0);
+            controls.update();
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 3;
+            controls.minDistance = 2;
+            controls.maxDistance = 10;
+            controls.enablePan = false;
+
+            // --- Tint system ---
+            // Each material gets uniforms injected via onBeforeCompile
+            const tintUniforms = [];
+
+            function injectTint(material, index) {
+                const uniforms = {
+                    uTintColor: { value: new THREE.Color(1, 1, 1) },
+                    uTintStrength: { value: 0 },
+                };
+                tintUniforms[index] = uniforms;
+
+                material.onBeforeCompile = (shader) => {
+                    // Add uniforms
+                    shader.uniforms.uTintColor = uniforms.uTintColor;
+                    shader.uniforms.uTintStrength = uniforms.uTintStrength;
+
+                    // Inject the tint logic after diffuseColor is declared
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        'vec4 diffuseColor = vec4( diffuse, opacity );',
+                        `
+                        vec4 diffuseColor = vec4( diffuse, opacity );
+                        float lum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+                        vec3 tinted = uTintColor * lum;
+                        diffuseColor.rgb = mix(diffuseColor.rgb, tinted, uTintStrength);
+                        `
+                    );
+                };
+            }
+
+            function setTintColor(index, r, g, b, strength) {
+                const u = tintUniforms[index];
+                if (u) {
+                    u.uTintColor.value.setRGB(r, g, b);
+                    u.uTintStrength.value = strength;
+                }
+            }
+
+            // --- GLB loading ---
+            const gltfLoader = new GLTFLoader();
+            const url = 'https://raw.githubusercontent.com/ArleyUTP/buquet-360-/main/rose_bouquet_3d.glb';
+
+            gltfLoader.load(
+                url,
+                (gltf) => {
+                    const model = gltf.scene;
+                    model.scale.set(1, 1, 1);
+                    scene.add(model);
+
+                    // Find all meshes and assign materials
+                    const meshes = [];
+                    model.traverse((child) => {
+                        if (child.isMesh) {
+                            meshes.push(child);
+                        }
+                    });
+
+                    // Sort meshes by material index to match GLB order
+                    meshes.sort((a, b) => {
+                        const aIdx = a.material ? a.material.index || 0 : 0;
+                        const bIdx = b.material ? b.material.index || 0 : 0;
+                        return aIdx - bIdx;
+                    });
+
+                    // Inject tint into each material
+                    const assignedIndices = new Map();
+                    meshes.forEach((mesh) => {
+                        const mat = mesh.material;
+                        if (mat && !assignedIndices.has(mat.uuid)) {
+                            const idx = assignedIndices.size;
+                            assignedIndices.set(mat.uuid, idx);
+                            injectTint(mat, idx);
+                        }
+                    });
+
+                    // Set initial tints
+                    setTintColor(MAT.ROSES, 0.75, 0.14, 0.23, 0.7);
+                    setTintColor(MAT.RIBBON, 0.96, 0.93, 0.91, 0.5);
+                    setTintColor(MAT.WRAP, 0.83, 0.72, 0.59, 0.6);
+                    setTintColor(MAT.STEMS, 0.35, 0.55, 0.25, 0.0);
+
+                    loader.classList.add('hidden');
+                    updateBadge();
+                },
+                undefined,
+                (err) => {
+                    loader.querySelector('.loader-text').textContent = 'Error al cargar el modelo';
+                    console.error('GLB load error:', err);
+                }
+            );
+
+            // --- Update loop ---
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // --- Resize ---
+            function resize() {
+                const w = canvas.clientWidth;
+                const h = canvas.clientHeight;
+                renderer.setSize(w, h, false);
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+            }
+            window.addEventListener('resize', resize);
+
+            // --- State ---
+            const state = {
+                roseName: 'Rosa Roja',
+                roseRGB: [0.75, 0.14, 0.23],
+                ribbonName: 'Blanco',
+                ribbonRGB: [0.96, 0.93, 0.91],
+                wrapName: 'Kraft natural',
+                wrapRGB: [0.83, 0.72, 0.59],
+                size: 'M',
                 price: 85,
             };
 
-            function getMat(idx) {
-                try { return mv.model?.materials?.[idx] || null; } catch (e) { return null; }
-            }
+            const TINT_STRENGTH = {
+                roses: 0.7,
+                ribbon: 0.5,
+                wrap: 0.6,
+                stems: 0.0,
+            };
 
-            function setMatColor(idx, rgba) {
-                const mat = getMat(idx);
-                if (mat) {
-                    try { mat.pbrMetallicRoughness.setBaseColorFactor(rgba); } catch (e) {}
-                }
-            }
-
-            mv.addEventListener("load", () => {
-                loader.classList.add("hidden");
-                const names = [];
-                if (mv.model?.materials) {
-                    for (let i = 0; i < mv.model.materials.length; i++) {
-                        names.push("[" + i + "]=" + (mv.model.materials[i]?.name || "?"));
-                    }
-                }
-                console.log("Materials loaded:", names.join(", "));
-
-                // Apply tints (texture shows at full + emissive overlay)
-                setMatColor(ROSE_MAT, state.roseRGBA);
-                setMatColor(RIBBON_MAT, state.ribbonRGBA);
-                setMatColor(WRAP_MAT, state.wrapRGBA);
-                updateBadge();
-            });
-
-            mv.addEventListener("error", () => {
-                loader.querySelector(".loader-text").textContent =
-                    "Error al cargar el modelo";
-            });
-
-            /* ── ROSAS ── */
-            function setRoseColor(el, key, name, hex, rgba) {
-                const parent = el.closest(".section");
-                parent.querySelectorAll(".swatch").forEach((s) => s.classList.remove("active"));
-                el.classList.add("active");
+            // --- Color setters ---
+            window.setRoseColor = function (el, key, name, hex, rgba) {
+                const parent = el.closest('.section');
+                parent.querySelectorAll('.swatch').forEach((s) => s.classList.remove('active'));
+                el.classList.add('active');
                 state.roseName = name;
-                state.roseRGBA = rgba;
-                setMatColor(ROSE_MAT, rgba);
+                state.roseRGB = [rgba[0], rgba[1], rgba[2]];
+                setTintColor(MAT.ROSES, rgba[0], rgba[1], rgba[2], TINT_STRENGTH.roses);
                 updateBadge();
-            }
+            };
 
-            /* ── LISTÓN ── */
-            function setRibbonColor(el, key, name, hex, rgba) {
-                const parent = el.closest(".section");
-                parent.querySelectorAll(".swatch").forEach((s) => s.classList.remove("active"));
-                el.classList.add("active");
+            window.setRibbonColor = function (el, key, name, hex, rgba) {
+                const parent = el.closest('.section');
+                parent.querySelectorAll('.swatch').forEach((s) => s.classList.remove('active'));
+                el.classList.add('active');
                 state.ribbonName = name;
-                state.ribbonRGBA = rgba;
-                setMatColor(RIBBON_MAT, rgba);
+                state.ribbonRGB = [rgba[0], rgba[1], rgba[2]];
+                setTintColor(MAT.RIBBON, rgba[0], rgba[1], rgba[2], TINT_STRENGTH.ribbon);
                 updateBadge();
-            }
+            };
 
-            /* ── ENVOLTURA ── */
-            function setWrapColor(btn, name, hex, rgba) {
-                const list = btn.closest(".option-list");
-                list.querySelectorAll(".opt-btn").forEach((b) => b.classList.remove("active"));
-                btn.classList.add("active");
+            window.setWrapColor = function (btn, name, hex, rgba) {
+                const list = btn.closest('.option-list');
+                list.querySelectorAll('.opt-btn').forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
                 state.wrapName = name;
-                state.wrapRGBA = rgba;
-                setMatColor(WRAP_MAT, rgba);
+                state.wrapRGB = [rgba[0], rgba[1], rgba[2]];
+                setTintColor(MAT.WRAP, rgba[0], rgba[1], rgba[2], TINT_STRENGTH.wrap);
                 updateBadge();
-            }
+            };
 
-            /* ── TALLA ── */
-            function setSize(btn, price, size) {
+            window.setSize = function (btn, price, size) {
                 document
-                    .querySelectorAll(".size-btn")
-                    .forEach((b) => b.classList.remove("active"));
-                btn.classList.add("active");
+                    .querySelectorAll('.size-btn')
+                    .forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
                 state.price = price;
                 state.size = size;
-                priceVal.textContent = "S/ " + price;
+                priceVal.textContent = 'S/ ' + price;
                 updateBadge();
+            };
+
+            function rgbaToHex(rgba) {
+                const r = Math.round(rgba[0] * 255).toString(16).padStart(2, '0');
+                const g = Math.round(rgba[1] * 255).toString(16).padStart(2, '0');
+                const b = Math.round(rgba[2] * 255).toString(16).padStart(2, '0');
+                return '#' + r + g + b;
             }
 
             function updateBadge() {
-                const hex = rgbaToHex(state.roseRGBA);
+                const hex = rgbaToHex(state.roseRGB.concat(1));
                 colorBadge.textContent = state.roseName;
                 colorBadge.style.borderColor = hex;
                 configNote.textContent =
                     `Rosas ${state.roseName.toLowerCase()} · Listón ${state.ribbonName.toLowerCase()} · ${state.wrapName} · Talla ${state.size}`;
             }
 
-            function rgbaToHex(rgba) {
-                const r = Math.round(rgba[0] * 255).toString(16).padStart(2, "0");
-                const g = Math.round(rgba[1] * 255).toString(16).padStart(2, "0");
-                const b = Math.round(rgba[2] * 255).toString(16).padStart(2, "0");
-                return "#" + r + g + b;
-            }
-
-            function addToCart() {
+            window.addToCart = function () {
                 const msg =
                     `¡Quiero ordenar este bouquet!\n` +
                     `• Rosas: ${state.roseName}\n` +
                     `• Listón: ${state.ribbonName}\n` +
                     `• Envoltura: ${state.wrapName}\n` +
-                    `• Talla: ${state.size} \n` +
+                    `• Talla: ${state.size}\n` +
                     `• Precio: S/ ${state.price}`;
-                alert("Pedido registrado:\n\n" + msg);
-            }
+                alert('Pedido registrado:\n\n' + msg);
+            };
         </script>
     </body>
 </html>
