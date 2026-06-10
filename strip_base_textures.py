@@ -8,10 +8,11 @@ Materials to modify (user-facing color pickers):
   - papel_envoltura_mat → solid color (default kraft)
   - tallos_hojas_mat → KEEPS its texture (not colorizable in UI)
 
-Also removes unused texture/image entries from the GLB array.
+IMPORTANT: Only modifies material properties. Does NOT remove textures
+from the glTF arrays — that would invalidate indices for other materials.
 """
 
-import sys, json, shutil
+import sys
 from pathlib import Path
 
 sys.path.insert(0, '/tmp/glbenv/lib/python3.12/site-packages')
@@ -32,104 +33,57 @@ def main():
         print(f'❌ GLB not found: {GLB_PATH}')
         sys.exit(1)
 
-    # Backup
-    shutil.copy2(GLB_PATH, BACKUP)
-    print(f'📦 Backup saved: {BACKUP.name}')
+    # Backup only if not already backed up
+    if not BACKUP.exists():
+        import shutil
+        shutil.copy2(GLB_PATH, BACKUP)
+        print(f'📦 Backup saved: {BACKUP.name}')
+    else:
+        print(f'📦 Backup exists: {BACKUP.name}')
 
     gltf = GLTF2().load(str(GLB_PATH))
 
-    # ── Track which textures/images are still in use ──
-    used_texture_indices = set()
-    used_image_indices   = set()
-
-    # ── Modify materials ──
     modified = 0
     for mat in gltf.materials:
         if mat.name not in MATERIAL_CONFIG:
-            # Keep as-is (tallos_hojas_mat) but still track its texture refs
-            if mat.pbrMetallicRoughness and mat.pbrMetallicRoughness.baseColorTexture:
-                used_texture_indices.add(mat.pbrMetallicRoughness.baseColorTexture.index)
-            if mat.normalTexture:
-                used_texture_indices.add(mat.normalTexture.index)
-            if mat.pbrMetallicRoughness and mat.pbrMetallicRoughness.metallicRoughnessTexture:
-                used_texture_indices.add(mat.pbrMetallicRoughness.metallicRoughnessTexture.index)
             continue
 
-        if not mat.pbrMetallicRoughness:
+        pbr = mat.pbrMetallicRoughness
+        if not pbr:
             print(f'⚠  {mat.name}: no pbrMetallicRoughness, skipping')
             continue
 
-        base_color = MATERIAL_CONFIG[mat.name]
-        # Remember texture index before removing
-        tex_ref = mat.pbrMetallicRoughness.baseColorTexture
-        if tex_ref is not None:
-            # Will check later if this texture becomes unused
-            used_texture_indices.discard(tex_ref.index)
+        # Remember texture ref before nulling
+        tex_ref = pbr.baseColorTexture
 
-        # Remove the base color texture
-        mat.pbrMetallicRoughness.baseColorTexture = None
+        # Remove the base color texture reference
+        pbr.baseColorTexture = None
 
         # Set solid base color (sRGB values — Three.js converts to linear)
-        mat.pbrMetallicRoughness.baseColorFactor = base_color
-
-        # Keep normal texture and ORM texture references
-        if mat.normalTexture:
-            used_texture_indices.add(mat.normalTexture.index)
-        if mat.pbrMetallicRoughness.metallicRoughnessTexture:
-            used_texture_indices.add(mat.pbrMetallicRoughness.metallicRoughnessTexture.index)
+        pbr.baseColorFactor = MATERIAL_CONFIG[mat.name]
 
         modified += 1
-        print(f'✅ {mat.name}: baseColorTexture removed, baseColorFactor → {base_color}')
+        print(f'✅ {mat.name}: baseColorTexture removed (was idx {tex_ref.index if tex_ref else "?"}), baseColorFactor → {pbr.baseColorFactor}')
 
     print(f'\n📐 {modified} materials modified')
-
-    # ── Remove unused textures ──
-    # Textures still in use: those referenced by remaining materials
-    # plus possibly referenced by other things
-    total_textures = len(gltf.textures)
-    unused_texture_indices = set()
-    for i in range(total_textures):
-        if i not in used_texture_indices:
-            unused_texture_indices.add(i)
-
-    # Track which texture entries reference which images
-    tex_to_image = {}
-    for i, tex in enumerate(gltf.textures):
-        if tex.source is not None:
-            tex_to_image[i] = tex.source
-
-    if unused_texture_indices:
-        # Remove textures from the end to preserve indices
-        for idx in sorted(unused_texture_indices, reverse=True):
-            removed_tex = gltf.textures.pop(idx)
-            # Adjust used_texture_indices for higher indices
-            used_texture_indices = {i for i in used_texture_indices if i < idx}
-            # Also track its image ref for possible removal
-            print(f'🗑️  Removed texture[{idx}]: source={removed_tex.source}')
-
-        # Re-index: update all material texture references
-        # Since we removed high-to-low and Three.js will remap on load,
-        # we need to rebuild the texture array.
-        # Actually, let's NOT remove textures. It's complex to re-index.
-        # Instead, just leave unreferenced textures in the file.
-        # Won't affect rendering and keeps re-indexing simple.
-        print('⚠  Unused textures left in file (re-indexing is risky); GLB size not affected much')
-    else:
-        print('✓ All textures still referenced (keeping as-is)')
 
     # ── Save ──
     gltf.save(str(GLB_PATH))
     new_size = GLB_PATH.stat().st_size
-    print(f'\n💾 GLB saved: {GLB_PATH.name} ({new_size / 1e6:.1f} MB)')
+    print(f'💾 GLB saved: {GLB_PATH.name} ({new_size / 1e6:.1f} MB)')
 
-    # ── Verify ──
+    # ── Verify (load fresh) ──
     verify = GLTF2().load(str(GLB_PATH))
     for mat in verify.materials:
         pbr = mat.pbrMetallicRoughness
         tex = pbr.baseColorTexture if pbr else None
-        has_texture = tex is not None
-        has_factor = pbr.baseColorFactor if pbr else None
-        print(f'  Verify {mat.name}: baseColorTexture={has_texture}, baseColorFactor={has_factor}')
+        fac = pbr.baseColorFactor if pbr else None
+        print(f'  Verify {mat.name}: baseColorTexture={tex is not None}, baseColorFactor={fac}')
+        # Also verify tallos still has texture
+        if mat.name not in MATERIAL_CONFIG:
+            norm = mat.normalTexture
+            orm  = pbr.metallicRoughnessTexture if pbr else None
+            print(f'    ↳ normalTexture={norm.index if norm else "N/A"}, metallicRoughnessTexture={orm.index if orm else "N/A"}')
 
 if __name__ == '__main__':
     main()
