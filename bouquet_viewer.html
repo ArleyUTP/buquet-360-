@@ -619,16 +619,34 @@
             function setMatColor(idx, rgba) {
                 const mat = getMat(idx);
                 if (mat) {
-                    try { mat.pbrMetallicRoughness.setBaseColorFactor(rgba); } catch (e) {}
+                    try {
+                        // Method 1: setBaseColorFactor
+                        mat.pbrMetallicRoughness.setBaseColorFactor(rgba);
+                        // Method 2: direct property assignment (fallback)
+                        mat.pbrMetallicRoughness.baseColorFactor = rgba;
+                    } catch (e) {
+                        console.warn("setMatColor failed for idx", idx, e);
+                    }
+                } else {
+                    console.warn("Material not found for idx", idx);
                 }
             }
 
             mv.addEventListener("load", () => {
                 loader.classList.add("hidden");
+                // Debug: show material names
+                const names = [];
+                if (mv.model?.materials) {
+                    for (let i = 0; i < mv.model.materials.length; i++) {
+                        names.push("[" + i + "]=" + (mv.model.materials[i]?.name || "?"));
+                    }
+                }
+                console.log("Materials loaded:", names.join(", "));
+
+                // Apply saved colors
                 setMatColor(ROSE_MAT, state.roseRGBA);
                 setMatColor(RIBBON_MAT, state.ribbonRGBA);
                 setMatColor(WRAP_MAT, state.wrapRGBA);
-                // tallos_hojas stays at default (no tint)
                 updateBadge();
             });
 
