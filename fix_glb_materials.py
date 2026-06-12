@@ -54,8 +54,8 @@ print('=== Tulipan ===')
 fix_glb_materials(ROOT / 'tulipan_bouquet_3d.glb', {
     'Mesh_3.001': 'flor',    # 229K verts → flower head
     'Mesh_1.001': 'liston',  # 92K verts → ribbon (smallest)
-    'Mesh_2.001': 'tallos',  # 533K verts → stems/leaves (most complex)
-    'Mesh_0.001': 'papel',   # 466K verts → wrapping paper
+    'Mesh_0.001': 'tallos',  # 466K verts → stems/leaves
+    'Mesh_2.001': 'papel',   # 533K verts → wrapping paper
 })
 
 print()
