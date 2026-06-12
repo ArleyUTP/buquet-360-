@@ -84,7 +84,17 @@
       <p class="panel-subtitle">Personaliza cada detalle</p>
     </div>
 
-    <!-- ROSAS -->
+    <!-- TIPO DE FLOR -->
+    <div class="section">
+      <span class="section-label">Tipo de flor</span>
+      <div class="option-list" id="flowerTypeList">
+        <button class="opt-btn active" onclick="setFlowerType(this,'rosas')">     <span class="opt-dot" style="background:#c0233a"></span>Rosas</button>
+        <button class="opt-btn"        onclick="setFlowerType(this,'tulipanes')"> <span class="opt-dot" style="background:#e86030"></span>Tulipanes</button>
+        <button class="opt-btn"        onclick="setFlowerType(this,'gerberas')"> <span class="opt-dot" style="background:#e8708a"></span>Gerberas</button>
+      </div>
+    </div>
+
+    <!-- COLOR DE FLORES -->
     <div class="section">
       <span class="section-label">Color de flores</span>
       <div class="swatch-grid" id="swatchFlor">
@@ -251,80 +261,123 @@ function setMatColor(slot, hex) {
   }
 }
 
-// ── Load GLB ─────────────────────────────────────────────────────────────────
-const GLB_URL = 'https://raw.githubusercontent.com/ArleyUTP/buquet-360-/main/rose_bouquet_3d.glb';
+// ── GLB registry ─────────────────────────────────────────────────────────────
+const GLB_BASE = 'https://raw.githubusercontent.com/ArleyUTP/buquet-360-/main/';
+const GLB_URLS = {
+  rosas:     'rose_bouquet_3d.glb',
+  tulipanes: 'tulipan_bouquet_3d.glb',
+  gerberas:  'gerberas_bouquet_3d.glb',
+};
 
-new GLTFLoader().load(
-  GLB_URL,
-  (gltf) => {
-    const model = gltf.scene;
-    scene.add(model);
+let currentModel = null;
+let flowerType = 'rosas';
 
-    // Build material map by name
-    let totalMats = 0;
-    model.traverse(child => {
-      if (!child.isMesh) return;
-      const mats = Array.isArray(child.material) ? child.material : [child.material];
-      for (const mat of mats) {
-        if (!mat || !mat.name) continue;
-        const key = mat.name.toLowerCase().trim();
-        for (const [slot, matName] of Object.entries(MAT_NAMES)) {
-          if (key === matName.toLowerCase()) {
-            if (!matMap[slot]) matMap[slot] = [];
-            if (!matMap[slot].includes(mat)) {
-              matMap[slot].push(mat);
-              totalMats++;
-            }
-          }
+// ── Load a GLB by type ──────────────────────────────────────────────────────
+function loadFlowerType(type) {
+  flowerType = type;
+  const url = GLB_BASE + GLB_URLS[type];
+
+  // Remove previous model
+  if (currentModel) {
+    scene.remove(currentModel);
+    // Dispose geometry & materials to free memory
+    currentModel.traverse(child => {
+      if (child.isMesh) {
+        child.geometry.dispose();
+        if (Array.isArray(child.material)) {
+          child.material.forEach(m => m.dispose());
+        } else if (child.material) {
+          child.material.dispose();
         }
       }
     });
+    currentModel = null;
+  }
 
-    // Debug
-    const found = Object.keys(matMap);
-    debugEl.textContent = `Materiales: ${found.length ? found.join(', ') : 'NINGUNO — revisar MAT_NAMES vs GLB'}`;
+  // Clear material map
+  for (const key in matMap) delete matMap[key];
 
-    // Remove baseColorTexture from colorizable materials (GLB has baked texture)
-    // so material.color controls the full hue without multiplication.
-    const colorizable = ['flor', 'liston', 'papel'];
-    for (const slot of colorizable) {
-      const mats = matMap[slot];
-      if (!mats) continue;
-      for (const m of mats) {
-        if (m.map) {
-          m.map = null;
-          m.needsUpdate = true;
+  loaderEl.classList.remove('hidden');
+  loaderText.textContent = 'Cargando bouquet...';
+
+  new GLTFLoader().load(
+    url,
+    (gltf) => {
+      currentModel = gltf.scene;
+      scene.add(currentModel);
+
+      // Build material map by name
+      currentModel.traverse(child => {
+        if (!child.isMesh) return;
+        const mats = Array.isArray(child.material) ? child.material : [child.material];
+        for (const mat of mats) {
+          if (!mat || !mat.name) continue;
+          const key = mat.name.toLowerCase().trim();
+          for (const [slot, matName] of Object.entries(MAT_NAMES)) {
+            if (key === matName.toLowerCase()) {
+              if (!matMap[slot]) matMap[slot] = [];
+              if (!matMap[slot].includes(mat)) {
+                matMap[slot].push(mat);
+              }
+            }
+          }
+        }
+      });
+
+      // Debug
+      const found = Object.keys(matMap);
+      debugEl.textContent = `Materiales: ${found.length ? found.join(', ') : 'NINGUNO — revisar MAT_NAMES vs GLB'}`;
+
+      // Remove baseColorTexture from colorizable materials so material.color
+      // controls the full hue without texture multiplication.
+      const colorizable = ['flor', 'liston', 'papel'];
+      for (const slot of colorizable) {
+        const mats = matMap[slot];
+        if (!mats) continue;
+        for (const m of mats) {
+          if (m.map) {
+            m.map = null;
+            m.needsUpdate = true;
+          }
         }
       }
+
+      // Apply current colors
+      if (type === 'rosas') {
+        setMatColor('flor',  '#c0233a');
+      } else if (type === 'tulipanes') {
+        setMatColor('flor',  '#e86030');
+      } else if (type === 'gerberas') {
+        setMatColor('flor',  '#e8708a');
+      }
+      setMatColor('liston', '#f5ede8');
+      setMatColor('papel',  '#d4b896');
+
+      // Auto-fit camera
+      const box = new THREE.Box3().setFromObject(currentModel);
+      const center = box.getCenter(new THREE.Vector3());
+      const size   = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      camera.position.set(center.x, center.y + maxDim * 0.3, maxDim * 2.2);
+      controls.target.copy(center);
+      controls.update();
+
+      loaderEl.classList.add('hidden');
+    },
+    (xhr) => {
+      const pct = Math.round(xhr.loaded / (xhr.total || 1) * 100);
+      loaderText.textContent = `Cargando bouquet... ${pct}%`;
+    },
+    (err) => {
+      loaderText.textContent = 'Error al cargar el modelo';
+      debugEl.textContent = '❌ ' + (err.message || err);
+      console.error(err);
     }
+  );
+}
 
-    // Apply default colors (using material.color for solid-color materials)
-    setMatColor('flor',  '#c0233a');
-    setMatColor('liston', '#f5ede8');
-    setMatColor('papel',  '#d4b896');
-    // tallos keeps its natural texture color
-
-    // Auto-fit camera to model bounds
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    const size   = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    camera.position.set(center.x, center.y + maxDim * 0.3, maxDim * 2.2);
-    controls.target.copy(center);
-    controls.update();
-
-    loaderEl.classList.add('hidden');
-  },
-  (xhr) => {
-    const pct = Math.round(xhr.loaded / (xhr.total || 1) * 100);
-    loaderText.textContent = `Cargando bouquet... ${pct}%`;
-  },
-  (err) => {
-    loaderText.textContent = 'Error al cargar el modelo';
-    debugEl.textContent = '❌ ' + (err.message || err);
-    console.error(err);
-  }
-);
+// Load initial bouquet
+loadFlowerType('rosas');
 
 // ── State ────────────────────────────────────────────────────────────────────
 const state = { florName:'Rojo', listonName:'Blanco', papelName:'Kraft natural', size:'M', price:85 };
@@ -347,6 +400,19 @@ window.setColor = (slot, el, name, hex) => {
   if (slot === 'papel')  { state.papelName  = name; }
 
   setMatColor(slot, hex);
+  updateUI();
+};
+
+window.setFlowerType = (el, type) => {
+  document.querySelectorAll('#flowerTypeList .opt-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+
+  // Reset color name for the new flower type
+  if (type === 'rosas')     state.florName = 'Rojo';
+  else if (type === 'tulipanes') state.florName = 'Naranja';
+  else if (type === 'gerberas')  state.florName = 'Rosa';
+
+  loadFlowerType(type);
   updateUI();
 };
 
