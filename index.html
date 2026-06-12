@@ -69,7 +69,7 @@
       <div class="loader-ring"></div>
       <span class="loader-text" id="loaderText">Cargando bouquet...</span>
     </div>
-    <div class="badge" id="colorBadge">Rosa Roja</div>
+    <div class="badge" id="colorBadge">Rojo</div>
     <canvas id="three-canvas"></canvas>
     <p class="viewer-hint">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg>
@@ -80,19 +80,19 @@
 
   <div class="panel">
     <div>
-      <h1 class="panel-title">Bouquet<br/>de Rosas</h1>
+      <h1 class="panel-title">Arma tu<br/>Bouquet</h1>
       <p class="panel-subtitle">Personaliza cada detalle</p>
     </div>
 
     <!-- ROSAS -->
     <div class="section">
-      <span class="section-label">Color de rosas</span>
-      <div class="swatch-grid" id="swatchRosas">
-        <div class="swatch active" style="background:#c0233a"        onclick="setColor('rosas',this,'Rosa Roja','#c0233a')"     title="Roja"></div>
-        <div class="swatch"        style="background:#e8708a"        onclick="setColor('rosas',this,'Rosa Clásica','#e8708a')"  title="Rosa"></div>
-        <div class="swatch"        style="background:#c2185b"        onclick="setColor('rosas',this,'Rosa Fucsia','#c2185b')"   title="Fucsia"></div>
-        <div class="swatch"        style="background:#e86030"        onclick="setColor('rosas',this,'Rosa Naranja','#e86030')"  title="Naranja"></div>
-        <div class="swatch"        style="background:#f5ede8;border-color:#ddd" onclick="setColor('rosas',this,'Rosa Blanca','#f5ede8')" title="Blanca"></div>
+      <span class="section-label">Color de flores</span>
+      <div class="swatch-grid" id="swatchFlor">
+        <div class="swatch active" style="background:#c0233a"        onclick="setColor('flor',this,'Rojo','#c0233a')"     title="Rojo"></div>
+        <div class="swatch"        style="background:#e8708a"        onclick="setColor('flor',this,'Rosa','#e8708a')"      title="Rosa"></div>
+        <div class="swatch"        style="background:#c2185b"        onclick="setColor('flor',this,'Fucsia','#c2185b')"   title="Fucsia"></div>
+        <div class="swatch"        style="background:#e86030"        onclick="setColor('flor',this,'Naranja','#e86030')"  title="Naranja"></div>
+        <div class="swatch"        style="background:#f5ede8;border-color:#ddd" onclick="setColor('flor',this,'Blanco','#f5ede8')" title="Blanco"></div>
       </div>
     </div>
 
@@ -124,9 +124,9 @@
     <div class="section">
       <span class="section-label">Tamaño</span>
       <div class="size-grid">
-        <button class="size-btn"        onclick="setSize(this,55,'S')">S<small>12 rosas</small></button>
-        <button class="size-btn active" onclick="setSize(this,85,'M')">M<small>24 rosas</small></button>
-        <button class="size-btn"        onclick="setSize(this,130,'L')">L<small>36 rosas</small></button>
+        <button class="size-btn"        onclick="setSize(this,55,'S')">S<small>12 flores</small></button>
+        <button class="size-btn active" onclick="setSize(this,85,'M')">M<small>24 flores</small></button>
+        <button class="size-btn"        onclick="setSize(this,130,'L')">L<small>36 flores</small></button>
       </div>
     </div>
 
@@ -136,7 +136,7 @@
         <span class="price-val" id="priceVal">S/ 85</span>
       </div>
       <button class="cta-btn" onclick="addToCart()">Agregar al pedido</button>
-      <p class="note" id="configNote">Rosa Roja · Listón Blanco · Kraft natural · Talla M</p>
+      <p class="note" id="configNote">Rojo · Listón Blanco · Kraft natural · Talla M</p>
     </div>
   </div>
 </div>
@@ -162,7 +162,7 @@ const debugEl    = document.getElementById('debug');
 
 // ── Material name mapping (must match GLB export names) ──────────────────────
 const MAT_NAMES = {
-  rosas:  'rosas_mat',
+  flor:   'flor_mat',
   liston: 'liston_mat',
   papel:  'papel_envoltura_mat',
   tallos: 'tallos_hojas_mat',
@@ -286,7 +286,7 @@ new GLTFLoader().load(
 
     // Remove baseColorTexture from colorizable materials (GLB has baked texture)
     // so material.color controls the full hue without multiplication.
-    const colorizable = ['rosas', 'liston', 'papel'];
+    const colorizable = ['flor', 'liston', 'papel'];
     for (const slot of colorizable) {
       const mats = matMap[slot];
       if (!mats) continue;
@@ -299,7 +299,7 @@ new GLTFLoader().load(
     }
 
     // Apply default colors (using material.color for solid-color materials)
-    setMatColor('rosas',  '#c0233a');
+    setMatColor('flor',  '#c0233a');
     setMatColor('liston', '#f5ede8');
     setMatColor('papel',  '#d4b896');
     // tallos keeps its natural texture color
@@ -327,11 +327,11 @@ new GLTFLoader().load(
 );
 
 // ── State ────────────────────────────────────────────────────────────────────
-const state = { roseName:'Rosa Roja', listonName:'Blanco', papelName:'Kraft natural', size:'M', price:85 };
+const state = { florName:'Rojo', listonName:'Blanco', papelName:'Kraft natural', size:'M', price:85 };
 
 function updateUI() {
-  colorBadge.textContent = state.roseName;
-  configNote.textContent = `${state.roseName} · Listón ${state.listonName} · ${state.papelName} · Talla ${state.size}`;
+  colorBadge.textContent = state.florName;
+  configNote.textContent = `${state.florName} · Listón ${state.listonName} · ${state.papelName} · Talla ${state.size}`;
 }
 
 // ── Unified color handler ────────────────────────────────────────────────────
@@ -342,7 +342,7 @@ window.setColor = (slot, el, name, hex) => {
   }
   el.classList.add('active');
 
-  if (slot === 'rosas')  { state.roseName  = name; }
+  if (slot === 'flor')   { state.florName   = name; }
   if (slot === 'liston') { state.listonName = name; }
   if (slot === 'papel')  { state.papelName  = name; }
 
@@ -360,7 +360,7 @@ window.setSize = (el, price, size) => {
 };
 
 window.addToCart = () => {
-  alert(`¡Pedido agregado!\n• Rosas: ${state.roseName}\n• Listón: ${state.listonName}\n• Envoltura: ${state.papelName}\n• Talla: ${state.size}\n• Precio: S/ ${state.price}`);
+  alert(`¡Pedido agregado!\n• Flores: ${state.florName}\n• Listón: ${state.listonName}\n• Envoltura: ${state.papelName}\n• Talla: ${state.size}\n• Precio: S/ ${state.price}`);
 };
 </script>
 </body>
